@@ -1,7 +1,11 @@
 use std::mem;
 use std::net;
-use pnet::datalink;
+use std::process;
+use std::env;
+use pnet::datalink::{self, NetworkInterface};
+
 use pnet::transport;
+
 
 fn main() {
 
@@ -9,9 +13,19 @@ fn main() {
     //We'll trust in libpnet. Should be cross-platform.
     //Only TCP for now
 
-    //1. Check args and show usage. Something like -> USAGE: tony --sniff eth0
+    //1. Check args and show usage. Something like -> USAGE: tony eth0
+    let first_arg = env::args().nth(1);
+    if first_arg.is_none() {
+        eprintln!("USAGE: tony <IFACE>");
+        process::exit(1);
+    }
 
     //2. Retrieve interface from args, search for it at OS level, and allocate it.
+    let network_interfaces = datalink::interfaces();
+    let network_interface = network_interfaces.into_iter()
+        .filter(|net_iface: &NetworkInterface| net_iface.name == first_arg)
+        .next()
+        .unwrap();
 
     //3. Create a channel over the iface.
 
